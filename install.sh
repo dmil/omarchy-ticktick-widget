@@ -50,7 +50,13 @@ fi
 cp "$SCRIPT_DIR/eww/eww.yuck" "$EWW_CONFIG_DIR/eww.yuck"
 cp "$SCRIPT_DIR/eww/eww.scss" "$EWW_CONFIG_DIR/eww.scss"
 
-# ── 5. Save TickTick API token ────────────────────────────────────────────────
+# ── 5. Install Omarchy theme-set hook ─────────────────────────────────────────
+echo "--> Installing Omarchy theme-set hook ..."
+HOOKS_DIR="$HOME/.config/omarchy/hooks"
+mkdir -p "$HOOKS_DIR"
+install -m 755 "$SCRIPT_DIR/hooks/theme-set" "$HOOKS_DIR/theme-set"
+
+# ── 6. Save TickTick API token ────────────────────────────────────────────────
 echo
 echo "==> Next: save your TickTick API token"
 echo
@@ -59,7 +65,7 @@ if [[ "${yn,,}" != "n" ]]; then
   ticktick-auth
 fi
 
-# ── 6. Add to Hyprland autostart (optional) ───────────────────────────────────
+# ── 7. Add to Hyprland autostart (optional) ───────────────────────────────────
 echo
 read -rp "Add widget to Hyprland autostart? [y/N] " yn
 if [[ "${yn,,}" == "y" ]]; then

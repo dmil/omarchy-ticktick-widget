@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Restart eww ticktick widget after theme change.
+# Colors are auto-detected from ~/.config/omarchy/current/theme/light.mode
+# so no patching of eww.yuck is needed.
+eww kill 2>/dev/null
+sleep 0.5
+eww daemon && eww open ticktick
