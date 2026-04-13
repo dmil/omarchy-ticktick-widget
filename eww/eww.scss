@@ -6,7 +6,7 @@
 $bg:         #FFFCF0;
 $fg:         #100F0F;
 $muted:      #6F6E69;
-$border:     rgba(16, 15, 15, 0.10);
+$border:     rgba(16,15,15,0.10);
 $hover:      #F2F0E5;
 
 // Priority colors
@@ -21,20 +21,18 @@ $font: "Inter", "Helvetica Neue", "Arial", sans-serif;
   all: unset;
   font-family: $font;
   color: $fg;
-  box-sizing: border-box;
 }
 
 window,
 window.background,
 window.background > * {
-  background-color: rgba(0, 0, 0, 0) !important;
+  background-color: rgba(0,0,0,0);
 }
 
 .ticktick-root {
   border-radius: 12px;
   padding: 0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
 }
 
 // ── Header ────────────────────────────────────
@@ -53,10 +51,6 @@ window.background > * {
   color: $muted;
 }
 
-.widget-header:hover .hide-btn {
-  color: $fg;
-}
-
 // ── Divider ───────────────────────────────────
 .divider {
   background: $border;
@@ -73,8 +67,6 @@ window.background > * {
   font-size: 12px;
   font-weight: 600;
   color: $muted;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
   padding: 12px 20px 4px 20px;
 }
 
@@ -98,11 +90,6 @@ window.background > * {
   font-size: 14px;
   font-weight: 400;
   color: $fg;
-  line-height: 1.5;
-}
-
-.task-meta-row {
-  margin-top: 3px;
 }
 
 .task-project {

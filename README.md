@@ -98,6 +98,9 @@ eww open ticktick      # Show widget
 eww close ticktick     # Hide widget
 eww reload             # Force refresh tasks now
 eww kill               # Kill eww daemon
+
+# Restart (picks up config changes)
+eww kill && eww daemon && eww open ticktick
 ```
 
 ## Omarchy integration
