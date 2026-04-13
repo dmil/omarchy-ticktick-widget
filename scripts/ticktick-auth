@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Save your TickTick API access token for the eww widget.
+# Get your token from: https://developer.ticktick.com/
+
+set -euo pipefail
+
+CONFIG_DIR="$HOME/.config/ticktick-widget"
+TOKEN_FILE="$CONFIG_DIR/token.json"
+
+mkdir -p "$CONFIG_DIR"
+
+echo "TickTick API token setup"
+echo
+echo "Get your access token from https://developer.ticktick.com/"
+echo "(Create an app, complete OAuth once there, and copy the token)"
+echo
+read -rp "Paste your access token: " token
+
+cat > "$TOKEN_FILE" <<EOF
+{"access_token": "$token"}
+EOF
+
+chmod 600 "$TOKEN_FILE"
+echo "Token saved to $TOKEN_FILE"

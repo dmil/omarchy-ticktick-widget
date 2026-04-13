@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""
+Fetch today's TickTick tasks grouped by project, output JSON for eww widget.
+Caches results for 5 minutes to avoid hammering the API.
+"""
+
+import json
+import sys
+import time
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+import requests
+
+CONFIG_DIR = Path.home() / ".config" / "ticktick-widget"
+TOKEN_FILE = CONFIG_DIR / "token.json"
+CACHE_FILE = CONFIG_DIR / "cache.json"
+CACHE_TTL  = 300  # 5 minutes
+
+API_BASE = "https://api.ticktick.com/open/v1"
+
+PRIORITY_LABELS = {5: "high", 3: "medium", 1: "low", 0: "none"}
+PRIORITY_EMOJI  = {5: "🔴", 3: "🟡", 1: "🔵", 0: ""}
+
+
+def error_output(msg):
+    print(json.dumps([{"project": "Error", "tasks": [
+        {"title": msg, "priority": "none"}
+    ]}]))
+    sys.exit(0)
+
+
+def load_token():
+    if not TOKEN_FILE.exists():
+        error_output("Run ticktick-auth first")
+    data = json.loads(TOKEN_FILE.read_text())
+    token = data.get("access_token") or data.get("token")
+    if not token:
+        error_output("Invalid token file — run ticktick-auth again")
+    return token
+
+
+def api_get(path, token):
+    return requests.get(
+        f"{API_BASE}{path}",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=10,
+    )
+
+
+def get_today_tasks():
+    # Serve from cache if fresh
+    if CACHE_FILE.exists():
+        try:
+            cache = json.loads(CACHE_FILE.read_text())
+            if time.time() - cache.get("timestamp", 0) < CACHE_TTL:
+                return cache["groups"]
+        except Exception:
+            pass
+
+    token = load_token()
+
+    # Fetch all projects
+    resp = api_get("/project", token)
+    if resp.status_code == 401:
+        error_output("Token expired — run ticktick-auth again")
+    if not resp.ok:
+        error_output(f"API error {resp.status_code}")
+
+    projects = resp.json()
+    project_map  = {p["id"]: p["name"] for p in projects}
+    project_map["inbox"] = "Inbox"
+
+    # Fetch tasks from every project (including inbox)
+    all_tasks = []
+    for pid in list(project_map.keys()):
+        r = api_get(f"/project/{pid}/data", token)
+        if r.ok:
+            all_tasks.extend(r.json().get("tasks", []))
+
+    # Filter to today, status = 0 (undone)
+    today_date = datetime.now().astimezone().date()
+    priority_order = {"high": 0, "medium": 1, "low": 2, "none": 3}
+    seen_ids = set()
+    grouped = defaultdict(list)
+
+    for task in all_tasks:
+        tid = task.get("id")
+        if tid in seen_ids or task.get("status", 0) != 0:
+            continue
+
+        due = task.get("dueDate") or task.get("startDate")
+        if not due:
+            continue
+
+        try:
+            due_utc   = datetime.strptime(due[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+            task_date = due_utc.astimezone().date()
+        except Exception:
+            continue
+
+        if task_date != today_date:
+            continue
+
+        seen_ids.add(tid)
+        priority = task.get("priority", 0)
+        project  = project_map.get(task.get("projectId", ""), "Inbox")
+
+        pid = task.get("projectId", "inbox")
+        tid = task.get("id", "")
+        # TickTick web deep link to specific task
+        url = f"https://ticktick.com/webapp/#p/{pid}/tasks/{tid}/detail"
+
+        grouped[project].append({
+            "title":    task.get("title", ""),
+            "priority": PRIORITY_LABELS.get(priority, "none"),
+            "dot":      PRIORITY_EMOJI.get(priority, ""),
+            "url":      url,
+        })
+
+    # Sort tasks within each group by priority
+    for project in grouped:
+        grouped[project].sort(key=lambda t: priority_order.get(t["priority"], 3))
+
+    # Build output: list of {project, tasks} sorted by project name (Inbox first)
+    groups = []
+    for project in sorted(grouped.keys(), key=lambda p: (p != "Inbox", p)):
+        groups.append({"project": project, "tasks": grouped[project]})
+
+    CACHE_FILE.write_text(json.dumps({"timestamp": time.time(), "groups": groups}))
+    return groups
+
+
+if __name__ == "__main__":
+    try:
+        groups = get_today_tasks()
+        if not groups:
+            groups = [{"project": "Today", "tasks": [
+                {"title": "No tasks for today", "priority": "none"}
+            ]}]
+        print(json.dumps(groups))
+    except requests.exceptions.ConnectionError:
+        error_output("No network connection")
+    except Exception as e:
+        error_output(f"Error: {e}")

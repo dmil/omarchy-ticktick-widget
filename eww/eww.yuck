@@ -1,0 +1,104 @@
+;; ─────────────────────────────────────────────
+;;  TickTick Today Widget
+;;  Polls for today's tasks every 5 minutes
+;; ─────────────────────────────────────────────
+
+(defvar expanded true)
+(defvar hovered_task "")
+
+(defpoll groups
+  :interval "5m"
+  :initial `[{"project":"Loading...","tasks":[{"title":"","priority":"none"}]}]`
+  `ticktick-today`)
+
+(defpoll date_header
+  :interval "1h"
+  :initial ""
+  `date "+Today · %A, %B %-d"`)
+
+;; Single task row
+(defwidget task-item [task]
+  (eventbox
+    :class "task-row"
+    :onclick {`xdg-open '${task.url}'`}
+    :onhover {`eww update hovered_task='${task.url}'`}
+    :onhoverlost "eww update hovered_task=''"
+    :cursor "pointer"
+  (box
+    :class "task"
+    :orientation "h"
+    :space-evenly false
+    :spacing 10
+    :style {hovered_task == task.url ? "padding: 8px 20px; background-color: #F2F0E5;" : "padding: 8px 20px;"}
+    (label :class "task-check" :text "☐" :valign "start")
+    (label
+      :class "task-title"
+      :text {task.title}
+      :wrap true
+      :xalign 0
+      :hexpand true)
+    (label
+      :class "task-dot"
+      :text {task.dot}
+      :visible {task.dot != ""}
+      :valign "start"))))
+
+;; Group: list header + its tasks
+(defwidget task-group [group]
+  (box
+    :class "task-group"
+    :orientation "v"
+    :space-evenly false
+    (label
+      :class "group-header"
+      :text {group.project}
+      :xalign 0)
+    (for task in {group.tasks}
+      (task-item :task task))))
+
+;; The full widget
+(defwidget ticktick-widget []
+  (box
+    :class "ticktick-root"
+    :style "background-color: #FFFCF0;"
+    :orientation "v"
+    :space-evenly false
+    :spacing 0
+
+    ;; Header — click anywhere to expand/collapse
+    (eventbox
+      :class "widget-header"
+      :onclick "eww update expanded=${expanded == true ? false : true}"
+      (box
+        :orientation "h"
+        :space-evenly false
+        :spacing 10
+        (label :class "header-title" :text {date_header} :xalign 0 :hexpand true)
+        (label :class "hide-btn" :text {expanded ? "−" : "+"})))
+
+    ;; Divider + task list — hidden when collapsed
+    (box
+      :visible expanded
+      :orientation "v"
+      :space-evenly false
+      (box :class "divider")
+      (box
+        :class "task-list"
+        :orientation "v"
+        :space-evenly false
+        :spacing 0
+        (for group in groups
+          (task-group :group group))))))
+
+;; Window definition
+(defwindow ticktick
+  :monitor 0
+  :geometry (geometry
+    :x "16px"
+    :y "16px"
+    :width "640px"
+    :anchor "top left")
+  :stacking "bg"
+  :exclusive false
+  :focusable false
+  (ticktick-widget))
