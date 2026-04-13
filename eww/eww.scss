@@ -2,7 +2,7 @@
 //  TickTick Today Widget
 // ─────────────────────────────────────────────
 
-// Flexoki Light palette
+// Flexoki Light palette (structural defaults — colors driven inline for dark mode support)
 $bg:         #FFFCF0;
 $fg:         #100F0F;
 $muted:      #6F6E69;
@@ -31,7 +31,6 @@ window.background > * {
 }
 
 .ticktick-root {
-  background-color: $bg !important;
   border-radius: 12px;
   padding: 0;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);

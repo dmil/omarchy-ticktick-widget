@@ -16,6 +16,45 @@
   :initial ""
   `date "+Today · %A, %B %-d"`)
 
+;; ── Theme-aware colors ────────────────────────
+;; Flexoki Light: bg=#FFFCF0  hover=#F2F0E5  fg=#100F0F  muted=#6F6E69  check=#B7B5AC
+;; Flexoki Dark:  bg=#1C1B1A  hover=#282726  fg=#CECDC3  muted=#878580  check=#575653
+
+(defpoll root_bg_style
+  :interval "30s"
+  :initial "background-color: #FFFCF0;"
+  `test -f ~/.config/omarchy/current/theme/light.mode \
+    && echo "background-color: #FFFCF0;" \
+    || echo "background-color: #1C1B1A;"`)
+
+(defpoll task_hover_style
+  :interval "30s"
+  :initial "padding: 8px 20px; background-color: #F2F0E5;"
+  `test -f ~/.config/omarchy/current/theme/light.mode \
+    && echo "padding: 8px 20px; background-color: #F2F0E5;" \
+    || echo "padding: 8px 20px; background-color: #282726;"`)
+
+(defpoll fg_style
+  :interval "30s"
+  :initial "color: #100F0F;"
+  `test -f ~/.config/omarchy/current/theme/light.mode \
+    && echo "color: #100F0F;" \
+    || echo "color: #CECDC3;"`)
+
+(defpoll muted_style
+  :interval "30s"
+  :initial "color: #6F6E69;"
+  `test -f ~/.config/omarchy/current/theme/light.mode \
+    && echo "color: #6F6E69;" \
+    || echo "color: #878580;"`)
+
+(defpoll check_style
+  :interval "30s"
+  :initial "color: #B7B5AC;"
+  `test -f ~/.config/omarchy/current/theme/light.mode \
+    && echo "color: #B7B5AC;" \
+    || echo "color: #575653;"`)
+
 ;; Single task row
 (defwidget task-item [task]
   (eventbox
@@ -29,10 +68,11 @@
     :orientation "h"
     :space-evenly false
     :spacing 10
-    :style {hovered_task == task.url ? "padding: 8px 20px; background-color: #F2F0E5;" : "padding: 8px 20px;"}
-    (label :class "task-check" :text "☐" :valign "start")
+    :style {hovered_task == task.url ? task_hover_style : "padding: 8px 20px;"}
+    (label :class "task-check" :style {check_style} :text "☐" :valign "start")
     (label
       :class "task-title"
+      :style {fg_style}
       :text {task.title}
       :wrap true
       :xalign 0
@@ -51,6 +91,7 @@
     :space-evenly false
     (label
       :class "group-header"
+      :style {muted_style}
       :text {group.project}
       :xalign 0)
     (for task in {group.tasks}
@@ -60,7 +101,7 @@
 (defwidget ticktick-widget []
   (box
     :class "ticktick-root"
-    :style "background-color: #FFFCF0;"
+    :style {root_bg_style}
     :orientation "v"
     :space-evenly false
     :spacing 0
@@ -73,8 +114,8 @@
         :orientation "h"
         :space-evenly false
         :spacing 10
-        (label :class "header-title" :text {date_header} :xalign 0 :hexpand true)
-        (label :class "hide-btn" :text {expanded ? "−" : "+"})))
+        (label :class "header-title" :style {fg_style} :text {date_header} :xalign 0 :hexpand true)
+        (label :class "hide-btn" :style {muted_style} :text {expanded ? "−" : "+"})))
 
     ;; Divider + task list — hidden when collapsed
     (box
