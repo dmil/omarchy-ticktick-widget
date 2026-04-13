@@ -129,7 +129,7 @@
     :y "16px"
     :width "640px"
     :anchor "top left")
-  :stacking "bg"
+  :stacking "bottom"
   :exclusive false
   :focusable false
   (ticktick-widget))
