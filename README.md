@@ -39,9 +39,8 @@ eww (widget system)
 ## Getting a TickTick API token
 
 1. Go to https://developer.ticktick.com/manage
-2. Create a new app (set redirect URI to `http://localhost:8765/callback`)
-3. Complete the OAuth flow once to get an access token
-4. Copy the access token
+2. Click your app to open its settings
+3. Copy the access token from the token field
 
 ## Installation
 
